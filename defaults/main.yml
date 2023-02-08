@@ -1,0 +1,8 @@
+---
+node_exporter_textfile_dir: "/var/lib/node_exporter"
+node_exporter_enabled_collectors:
+  - systemd
+  - textfile:
+      directory: "{{ node_exporter_textfile_dir }}"
+disk_json_files_working_directory: "/opt/smartmon"
+prom_file_name: "smart_metrics_$(date '+%Y-%m-%d').prom"

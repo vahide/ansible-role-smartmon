@@ -1,0 +1,93 @@
+---
+- name: Install smartmontools
+  apt:
+    name: smartmontools
+    state: latest
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Download and add public keys 1 for the MCP repository
+  apt_key:
+    url: http://downloads.linux.hpe.com/SDR/hpPublicKey1024.pub
+    state: present
+- name: Download and add public keys 2 for the MCP repository
+  apt_key:
+    url: http://downloads.linux.hpe.com/SDR/hpPublicKey2048.pub
+    state: present
+- name: Download and add public keys 3 for the MCP repository
+  apt_key:
+    url: http://downloads.linux.hpe.com/SDR/hpPublicKey2048_key1.pub
+    state: present
+- name: Download and add public keys 4 for the MCP repository
+  apt_key:
+    url: http://downloads.linux.hpe.com/SDR/hpePublicKey2048_key1.pub
+    state: present
+
+- name: Add HP's MCP repository into sources list
+  apt_repository:
+    repo: 'deb http://downloads.linux.hpe.com/SDR/repo/mcp stretch/current non-free'
+    state: present
+    filename: hp-mcp
+    update_cache: yes
+
+- name: Install ssacli
+  apt:
+    name: ssacli
+    state: latest
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Ensure textfile collector Target Dir exists
+  file:
+    path: "{{ node_exporter_textfile_dir }}"
+    state: directory
+
+- name: Creating working dir
+  file:
+    path: "{{ disk_json_files_working_directory }}"
+    state: directory
+
+- name: Copy python script
+  copy:
+    src: smartmon.py
+    dest: "{{ disk_json_files_working_directory }}"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: get python3 location
+  shell: which python3
+  register: python3_location
+
+- name: copy service file 
+  template:
+    src: smartmon.service.j2
+    dest: /etc/systemd/system/smartmon.service
+    owner: root
+    group: root
+    mode: '0755'
+    
+- name: copy service.timer file
+  template:
+    src: smartmon.timer.j2
+    dest: /etc/systemd/system/smartmon.timer
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: systemd daemon-relod
+  ansible.builtin.service:
+    daemon_reload: yes
+
+- name: restart smartmon.service
+  ansible.builtin.service:
+    name: smartmon.service
+    enabled: yes
+    state: restarted
+
+- name: restart smartmon.timer
+  ansible.builtin.service:
+    name: smartmon.timer
+    enabled: yes
+    state: restarted
+

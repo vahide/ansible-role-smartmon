@@ -1,0 +1,10 @@
+[Unit]
+Description=Run smartmon daily
+
+[Service]
+ExecStart= {{ python3_location.stdout }} {{ disk_json_files_working_directory }}/smartmon.py
+User=root
+Group=systemd-journal
+
+[Install]
+WantedBy=multi-user.target
